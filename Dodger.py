@@ -1,5 +1,11 @@
 #!/bin/python3
 
+#This program is meant to show how someone can dodge an authentication filter on a network
+#It will change the hostname of the computer to convince the network that it is a diffrent computer from before
+#This program is meant to be run before macchanger because hostname alterations require the computer to be restarted to take effect
+#This program is for educational purposes only and should not be used with maliciuos intent
+
+
 import os
 import random
 import re
