@@ -1,4 +1,4 @@
-# CybersecrityPrograms/Spotter.py
+# CybersecrityPrograms/Spotter/Spotter.py
 
 THIS IS AN UNFINISHED PROJECT
 
