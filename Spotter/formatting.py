@@ -3,9 +3,9 @@
 import sys
 
 #import the file being edited and put it into beginfile
-in_file2 = open('nmapAvv3389.txt', 'r')
-beginfile = in_file2.read()
-in_file2.close
+in_file = open('nmapAvv3389.txt', 'r')
+beginfile = in_file.read()
+in_file.close
 
 #array for port finding
 APnT = [ '\n{}/'.format(x) for x in range(1,65536)]
