@@ -1,5 +1,11 @@
 #!/bin/python3
 
+#
+#
+#	THIS PROGRAM IS THE REFORMATTING SECTION OF SPOTTER TO MAKE THE COMBINATION EASIER
+#
+#
+
 import sys
 
 #import the file being edited and put it into beginfile
