@@ -1,4 +1,4 @@
-# CybersecrityPrograms/Dodger.py 
+# CybersecrityPrograms/Dodger/Dodger.py 
 
 This program is designed to change the hostname of a computer running on Kali Linux. 
 It will modify the /etc/hosts and /etc/hostname content to alter the name. 
