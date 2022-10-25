@@ -24,7 +24,7 @@ print(r"""
                      |___/           
 
 """)
-print("Version 1.0")
+print("Version 1.1")
 print("Created by Ryan 'Ghost' Voit")
 print("\nThis program will change the name of your computer under the /etc/hosts and the /etc/hostname file.")
 print("This program is meant to be run prior to macchanger to effectivly dodge the authentication filter.")
@@ -104,16 +104,6 @@ elif choice == "y":
         pat = 1
 elif choice == "Y":
         pat = 1
-elif choice == "no":
-        pat = 0
-elif choice == "No":
-        pat = 0
-elif choice == "NO":
-        pat = 0
-elif choice == "N":
-        pat = 0
-elif choice == "n":
-        pat = 0
 else:
         pat = 0
 
