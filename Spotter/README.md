@@ -1,10 +1,7 @@
 # CybersecrityPrograms/Spotter/Spotter.py
 
-THIS IS AN UNFINISHED PROJECT
-
-This program is built to clean up the output files of multiple scans. 
-It will reformat the outputs of your NMAP scans into one combined file.
-
-The files currently in here will be combined into the Spotter code once they are completed
+This program is built to clean up the output files of multiple nmap scans. 
+It will reformat the outputs of your nmap scans into one combined file.
+If you find any bugs, please let the creator know and state how they can recreate the bug.
 
 To access the help page, type ./Spotter.py -h or --help
