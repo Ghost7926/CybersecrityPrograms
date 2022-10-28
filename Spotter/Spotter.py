@@ -22,13 +22,13 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.01")
+	print("Version 1.02")
 	print("Created by Ryan 'Ghost' Voit")
 	print("This program is built to work in tandem with the tool nmap.")
 	print("It will keep your scan results organized in one continuously updated file.")
 	print("If you find any bugs in this program, please contact the creator and state how I can recreate the bug.\n")
 	print("Syntax:")
-	print("nmap x.x.x.x | ./Spotter.py output")
+	print("nmap x.x.x.x | ./Spotter.py <outfile>")
 	quit()
 
 #gets the arg length
@@ -235,14 +235,12 @@ else:
 		port_O = remq[ 0 : remq.index('\n')]
 		edit_O = edit_O.replace(port_O, "", 1)
 		
-		
 		#find the bigger port tab and add it to output
 		if len(port_O) > len(port_I):
 			outfile = outfile + '\n' + port_O + '\n'
 		else:
 			outfile = outfile + '\n' + port_I + '\n'
-		
-		
+
 
 		#	   PORT PRINTING		
 		while 1:
@@ -278,11 +276,11 @@ else:
 						edit_O = edit_O.replace('\n', '', 1)
 						
 					port_line_O = edit_O[ 0 : edit_O.index('\n')]
-			
+				
 					if len(port_line_O) > len(port_line_I):
-						outfile = outfile + port_line_O + "\n"
+						outfile = outfile + '\n' + port_line_O + '\n'
 					else:
-						outfile = outfile + '\n' + port_line_I
+						outfile = outfile + '\n' + port_line_I + '\n'
 			
 					#remove the port lines
 					edit_O = edit_O.replace(port_line_O, "", 1)
@@ -348,12 +346,13 @@ else:
 				
 		#reformat repeats to clean up ending output
 		outfile = outfile.replace("\n\n", "\n")
+		outfile = outfile.replace("\n \n", "\n")
 		outfile = outfile.replace("|\n", "")
 		outfile = outfile.replace("-------------------------------------------------------\n-------------------------------------------------------", "-------------------------------------------------------\n")
 		fin = outfile
 	
 
-	#main... pretty much
+	#main
 	if origin == '':
 		format()
 		out_file = open (argument, 'w')
