@@ -22,9 +22,9 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.0")
+	print("Version 1.01")
 	print("Created by Ryan 'Ghost' Voit")
-	print("This program is built to work in tandum with the tool nmap.")
+	print("This program is built to work in tandem with the tool nmap.")
 	print("It will keep your scan results organized in one continuously updated file.")
 	print("If you find any bugs in this program, please contact the creator and state how I can recreate the bug.\n")
 	print("Syntax:")
@@ -238,9 +238,9 @@ else:
 		
 		#find the bigger port tab and add it to output
 		if len(port_O) > len(port_I):
-			outfile = outfile + '\n' + port_O
+			outfile = outfile + '\n' + port_O + '\n'
 		else:
-			outfile = outfile + '\n' + port_I
+			outfile = outfile + '\n' + port_I + '\n'
 		
 		
 
