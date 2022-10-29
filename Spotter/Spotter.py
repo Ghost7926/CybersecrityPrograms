@@ -22,7 +22,7 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.02")
+	print("Version 1.03")
 	print("Created by Ryan 'Ghost' Voit")
 	print("This program is built to work in tandem with the tool nmap.")
 	print("It will keep your scan results organized in one continuously updated file.")
@@ -262,9 +262,11 @@ else:
 			
 				#get the same port line from the previous 
 				if APnT[Ii] in edit_O:
+					
 					#print all the ports that we skipped
 					portbefore = edit_O[ 0 : edit_O.index(APnT[Ii])]
 					outfile = outfile + portbefore
+					
 					
 					#remove the previus ports that are not needed	
 					remq = edit_O[edit_O.find(APnT[Ii]):]
@@ -285,22 +287,11 @@ else:
 					#remove the port lines
 					edit_O = edit_O.replace(port_line_O, "", 1)
 					edit_I = edit_I.replace(port_line_I, "", 1)
-	
-					edit_O = "\n|" + edit_O
-			
-					#remove to the next port
-					port_content_O = ""
-					Oi = 0	
-					while Oi < len(APnT) and len(port_content_O) < 2:
-						try:
-							port_content_O = edit_O[ 0 : edit_O.index(APnT[Oi])]
-						except:
-							Oi += 1			
-					if port_content_O != '':
-						outfile = outfile + port_content_O
-					else:
-						outfile = outfile + edit_O
-					outfile = outfile + "\n-------------------------------------------------------\n"
+					
+					
+					start_new_line = edit_O.startswith("\n")
+					if start_new_line == True:
+						edit_O = edit_O.replace('\n', '', 1)
 					
 					#input ports
 					
@@ -318,7 +309,26 @@ else:
 						outfile = outfile + port_content_I
 					else:
 						outfile = outfile + edit_I
+					outfile = outfile + "\n-------------------------------------------------------\n"					
+					
+					
+					#remove to the next port
+					port_content_O = ""
+					Oi = 0	
+					while Oi < len(APnT) and len(port_content_O) < 2:
+						try:
+							port_content_O = edit_O[ 0 : edit_O.index(APnT[Oi])]
+						except:
+							Oi += 1		
+							#print(Oi)
+					print(port_content_O)
+						
+					if port_content_O != '':
+						outfile = outfile + port_content_O
+					else:
+						outfile = outfile + edit_O
 					outfile = outfile + "\n-------------------------------------------------------\n"
+					
 			
 					edit_O = edit_O.replace(port_content_O, "", 1)
 					edit_I = edit_I.replace(port_content_I, "", 1)
