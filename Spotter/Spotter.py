@@ -22,7 +22,7 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.03")
+	print("Version 1.1")
 	print("Created by Ryan 'Ghost' Voit")
 	print("This program is built to work in tandem with the tool nmap.")
 	print("It will keep your scan results organized in one continuously updated file.")
@@ -320,7 +320,6 @@ else:
 							port_content_O = edit_O[ 0 : edit_O.index(APnT[Oi])]
 						except:
 							Oi += 1		
-							#print(Oi)
 					print(port_content_O)
 						
 					if port_content_O != '':
@@ -335,7 +334,38 @@ else:
 
 				#if this is a new port, add it between the already known ports
 				else:
-					edit_I = "\n|" + edit_I
+
+					Ni = 0
+					previous = ""
+					while Ii > Ni:
+						if APnT[Ni] in edit_O:
+							previous = edit_O[ 0 : edit_O.index(APnT[Ni])]
+							edit_O = edit_O.replace(previous, "", 1)
+							outfile = outfile + previous
+							previous = ""
+							Ni += 1
+							
+						else:
+							Ni += 1
+						
+					while Ni < len(APnT) and len(previous) < 1:
+						try:
+							previous = edit_O[ 0 : edit_O.index(APnT[Ni])]
+							edit_O = edit_O.replace(previous, "", 1)
+							outfile = outfile + previous
+						except:
+							Ni += 1	
+
+					
+					start_new_line = edit_I.startswith("\n")
+					if start_new_line == True:
+						edit_I = edit_I.replace('\n', '', 1)		
+		
+					port_line_I = edit_I[ 0 : edit_I.index('\n')]
+					
+					outfile = outfile + '\n' + port_line_I + '\n'
+					
+					edit_I = edit_I.replace(port_line_I, "", 1)
 					
 					port_content_I = ""
 					Iic = 0	
@@ -351,6 +381,8 @@ else:
 						outfile = outfile + edit_I
 					outfile = outfile + "\n-------------------------------------------------------\n"
 					edit_I = edit_I.replace(port_content_I, "", 1)
+					
+					outfile = outfile + edit_O
 			except:
 				break
 				
