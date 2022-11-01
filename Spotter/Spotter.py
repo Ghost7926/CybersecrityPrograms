@@ -220,7 +220,7 @@ else:
 			beforeIP = edit_O[ 0 : edit_O.index(host_I)]
 			outfile = outfile + beforeIP + host_I
 		else:
-			outfile = originfile + "\n\n" + infile
+			outfile = origin + "\n\n" + infile
 			quit()
 		
 		#remove the scan report txt
