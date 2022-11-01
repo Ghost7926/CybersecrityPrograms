@@ -22,7 +22,7 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.1")
+	print("Version 1.12")
 	print("Created by Ryan 'Ghost' Voit")
 	print("This program is built to work in tandem with the tool nmap.")
 	print("It will keep your scan results organized in one continuously updated file.")
@@ -68,8 +68,16 @@ else:
 	#EXIT IF
 	
 
-	#takes piped output and sets it to input_file, gives a comment incase user executes without input and has argument
-	input_file = str(sys.stdin.read())  # TYPE -h or --help FOR HELP PAGE
+	#takes piped output and sets it to input_file
+	try:
+		input_file = str(sys.stdin.read())
+	#if the ctr + c
+	except:
+		print("You gave too many arguments!!")
+		print("Type './Spotter --help' for help page \n")
+		print("Syntax: ")
+		print("nmap x.x.x.x | ./Spotter <outfile> ")
+		quit()
 	
 	if len(input_file) == 0:
 		print("You did not give an input!!")
