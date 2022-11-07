@@ -22,7 +22,7 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.12")
+	print("Version 1.13")
 	print("Created by Ryan 'Ghost' Voit")
 	print("This program is built to work in tandem with the tool nmap.")
 	print("It will keep your scan results organized in one continuously updated file.")
@@ -220,7 +220,7 @@ else:
 			beforeIP = edit_O[ 0 : edit_O.index(host_I)]
 			outfile = outfile + beforeIP + host_I
 		else:
-			outfile = origin + "\n\n" + infile
+			outfile = origin + "\n\n" + f_input
 			quit()
 		
 		#remove the scan report txt
