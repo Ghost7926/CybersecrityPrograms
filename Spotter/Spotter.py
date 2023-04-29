@@ -1,6 +1,7 @@
 #!/bin/python3
 
-import sys 
+import sys
+import re
 from os.path import exists as file_exists
 
 #array for port finding
@@ -9,8 +10,6 @@ APnT = [ '\n{}/'.format(x) for x in range(1,65536)]
 #declaring strings
 reporttxt = 'Nmap scan report for'
 porttxt = 'PORT'
-
-help_strings = ['-h', '--help']
 
 def helpme():
 	print(r"""
@@ -22,397 +21,455 @@ def helpme():
     /_/       
     
 """)
-	print("Version 1.13")
+	print("Version 2")
 	print("Created by Ryan 'Ghost' Voit")
-	print("This program is built to work in tandem with the tool nmap.")
-	print("It will keep your scan results organized in one continuously updated file.")
-	print("If you find any bugs in this program, please contact the creator and state how I can recreate the bug.\n")
-	print("Syntax:")
-	print("nmap x.x.x.x | ./Spotter.py <outfile>")
-	quit()
-
-#gets the arg length
-args = len(sys.argv)
-
-#checking if theres a name argument
-if args == 1:
-	print("You did not give a name for the output file!!")
-	print("Type './Spotter --help' for help page \n")
+	print("This program is built to combine the output files created by the tool Nmap.")
+	print("It will take two Nmap output files and put them together combining the results in an easier to read format.")
+	print("After combining two, it will print the results along with createing a output file.")
+	print("If you find any bugs in this program, please contact the creator and state how to recreate the bug.\n")
 	print("Syntax: ")
-	print("nmap x.x.x.x | ./Spotter <outfile> ")
+	print("./Spotter.py <file1> <file2>")
 	quit()
-#is there too many arguments
-elif args >= 3:
-	print("You gave too many arguments!!")
-	print("Type './Spotter --help' for help page \n")
+	
+
+#help argument
+if "-h" in sys.argv or "--help" in sys.argv:
+	helpme()
+
+
+#Improper useage of arguments
+if len(sys.argv) != 3:
+	print("...impropor arguments...\n")
+	print("Type './Spotter --help' for help page ")
 	print("Syntax: ")
-	print("nmap x.x.x.x | ./Spotter <outfile> ")
+	print("./Spotter <file1> <file2> ")
 	quit()
 
-#if there is an argument, begin the process
-else:
-	#using the argument as output file name
-	argument = str(sys.argv[1])
+#set args to names for files in system
+arg_file1 = sys.argv[1]
+arg_file2 = sys.argv[2]
+
+#declare variable to store file
+file1 = ""
+file2 = ""
+
+try:
+	with open(arg_file1) as f:
+		file1 = f.read()
+except:
+	print("Error: Could not read file1")
+	quit()
+
+try:
+	with open(arg_file2) as f:
+		file2 = f.read()
+except:
+	print("Error: Could not read file2")
+	quit()
+
+
+# checking to see if the files have content with ports 
+if porttxt not in file1:
+	print("The first file does not have any Nmap content...")
+	exit()
+
+if reporttxt not in file2:
+	print("The second file does not have any Nmap content...")
+	exit()
+
+
+fin_file = ""
+
+#function taking the nmap scan result for hostname
+def report(file):
+	#import variables
+	global reporttxt, porttxt, APnT
+
+	#if there is a nmap report, removes everything before it and everything after the host name
+	if reporttxt in file:
+		remq = file[file.find(reporttxt):]
+		file = remq
+		host = remq[ 0 : remq.index('\n')]
+		host = '\n' + host + '\n'
+		file = host
+		return(file)
+	#else, there is no nmap report, give the file back
+	else: 
+		return(file)
+
+#function for taking the port table top
+def column(file):
+	global reporttxt, porttxt, APnT
+	remq = file[file.find(reporttxt):]
+	remq2 = remq[remq.find(porttxt):]
+	file = remq2
+	tabs = remq2[ 0 : remq2.index('\n')]
+	file = file.replace(tabs, "", 1)
+	file = tabs
+	return(file)
+
+#function to take the ports
+def ports(file):
+	global reporttxt, porttxt, APnT
+	portsec = file
+	result = ""
 	
-	#is it a help page string
-	if argument in help_strings:
-		helpme()
+	#removes the possibility that another report return could format incorrectly
+	if reporttxt in portsec:
+		portsec = file[file.find(porttxt):]
+	while 1:
+		#goes through every port number and prints its file
+		try:
+			#finds the next port and deletes everything before
+			p1 = 0
+			pa = ''
+			while p1 < len(APnT) and len(pa) < 2:
+				pa = portsec[portsec.find(APnT[p1]):]
+				p1 += 1
+				
+			start_new_line = pa.startswith("\n")
 		
-	#checking if file starts with "-"
-	if argument.startswith('-'):
-		print("We do no recognise that switch!!")
-		print("Type './Spotter --help' for help page \n")
-		print("Syntax: ")
-		print("nmap x.x.x.x | ./Spotter <outfile> ")
-		quit()
-	#EXIT IF
-	
+			if start_new_line == True:
+				pa = pa.replace('\n', '', 1)
 
-	#takes piped output and sets it to input_file
-	try:
-		input_file = str(sys.stdin.read())
-	#if the ctr + c
-	except:
-		print("You gave too many arguments!!")
-		print("Type './Spotter --help' for help page \n")
-		print("Syntax: ")
-		print("nmap x.x.x.x | ./Spotter <outfile> ")
-		quit()
-	
-	if len(input_file) == 0:
-		print("You did not give an input!!")
-		print("Type './Spotter --help' for help page \n")
-		print("Syntax: ")
-		print("nmap x.x.x.x | ./Spotter <outfile> ")
-		quit()
-	#EXIT IF
-
-
-	#creates var to put data of old file into
-	origin = ""
-	
-
-	print(input_file)
-	
-	# does the file already exist, if so, take the content and set it to origin
-	if file_exists(argument):
-
-		in_file = open(argument, 'r')
-		origin = in_file.read()
-		in_file.close
-	#EXIT IF
-
-	#formatting
-	#fin = origin + input_file
-	
-	f_input = ""
-	editfile = input_file
-		#function for printing the report lines
-	def report():
-		#import variables
-		global reporttxt, porttxt, f_input, APnT, editfile
-		
-		#is there a port table in the remaining text
-		is_port = editfile.find(porttxt)
-		
-		#is a port table in the remaining document
-		if is_port != -1:
-		 	#when a report comes before the port table and theres a port table in the doc
-			while editfile.find(reporttxt) < editfile.find(porttxt) and is_port > -1:
-				#if the nmap report string is in the remaining file, cut it out and put it into the f_input
-				if reporttxt in editfile:
-					remq = editfile[editfile.find(reporttxt):]
-					editfile = remq
-					host = remq[ 0 : remq.index('\n')]
-					editfile = editfile.replace(host, '')
-					host = '\n' + host + '\n'
-					f_input = f_input + host
-				else:
-					return
-		else:
-			#no port table, then reformat it diffrently
-			if reporttxt in editfile:
-					remq = editfile[editfile.find(reporttxt):]
-					editfile = remq
-					host = remq[ 0 : remq.index('\n')]
-					editfile = editfile.replace(host, '')
-					host = '\n' + host
-					f_input = f_input + host
-					f_input = f_input + editfile
+			#finds the following port and deletes it
+			p2 = 0	
+			pb = ""
+			while p2 < len(APnT) and len(pb) < 2:
+				try:
+					pb = pa[ 0 : pa.index(APnT[p2])]
+				except:
+					p2 += 1
+			#prints what was found, if nothing, print what remains 
+			if pb != '':
+				pb = '\n' + pb
+				result = result + pb
 			else:
-				return
-	#function for printing the port table tab
-	def column():
-		global reporttxt, porttxt, f_input, APnT, editfile
-		remq = editfile[editfile.find(porttxt):]
-		editfile = remq
-		tabs = remq[ 0 : remq.index('\n')]
-		editfile = editfile.replace(tabs, "", 1)
-		f_input = f_input + tabs
-	
-	#function to take the ports and add them into the f_input
-	def ports():
-		global reporttxt, porttxt, f_input, APnT, editfile
-		portsec = editfile
-		
-		#removes the possibility that another report return could format incorrectly
-		if reporttxt in portsec:
-			portsec = editfile[ 0 : editfile.index(reporttxt)]
-			editfile = editfile.replace(portsec, '')
-	
-	
-		while 1:
-			#goes through every port number and prints its f_input
-			try:
-				#finds the next port and deletes everything before
-				p1 = 0
-				pa = ""
-				while p1 < len(APnT) and len(pa) < 2:
-					pa = portsec[portsec.find(APnT[p1]):]
-					p1 += 1
-					
-				start_new_line = pa.startswith("\n")
+				pa = '\n' + pa
+				result = result + pa
+			portsec = pa.replace(pb, '', 1)
 			
-				if start_new_line == True:
-					pa = pa.replace('\n', '', 1)
-				
-				#finds the following port and deletes it
-				p2 = 0	
-				pb = ""
-				while p2 < len(APnT) and len(pb) < 2:
-					try:
-						pb = pa[ 0 : pa.index(APnT[p2])]
+			if pb == '':
+				return(result)					
+		except:
+			return(result)
 
-					except:
-						p2 += 1
+file1_morethan1 = ''
+file2_morethan1 = ''
+
+for portc1 in APnT:
+		num1 = file1.count(portc1)
+		if num1 > 1:
+			file1_morethan1 = True
+			break
+
+for portc2 in APnT:
+		num2 = file2.count(portc2)
+		if num2 > 1:
+			file2_morethan1 = True
+			break
+
+
+if file1_morethan1 is True:
+	file1_2 = file1
+else:
+	file1_2 = report(file1) + column(file1) + ports(file1)
+
+if file2_morethan1 is True:
+	file2_2 = file2
+else:
+	file2_2 = report(file2) + column(file2) + ports(file2)
+
+
+
+line1_1 = file1_2.split('\n')
+line1_2 = file2_2.split('\n')
+
+if line1_1[1] != line1_2[1]:
+	print(repr(line1_1[1]))
+	print(repr(line1_2[1]))
+	print("These reports are of two different hosts. I can not combine these.")
+	exit()
+else:
+	fin_file = fin_file + "\n" + line1_1[1] + "\n"
+
+#grab the port tab from input, and remove
+remq = file1_2[file1_2.find(porttxt):]
+file1_2 = remq
+
+port_1 = remq[ 0 : remq.index('\n')]
+file1_2 = file1_2.replace(port_1, "", 1)
+
+#grab the port tab from origin, and remove
+remq = file2_2[file2_2.find(porttxt):]
+file2_2 = remq
+port_2 = remq[ 0 : remq.index('\n')]
+file2_2 = file2_2.replace(port_2, "", 1)
+
+
+#find the bigger port tab and add it to output
+if len(port_1) > len(port_2):
+	fin_file = fin_file + port_1 + "\n"
+else:
+	fin_file = fin_file + port_2 + "\n"
+
+
+
+
+
+
+'''
+sudo:
+
+find the first occurance of APnT in file 1
+if no occurance
+	hold till other done
+find the first occurance of APnT in file 2
+if no occurance
+	hold till other done
+compare
+if they same, 
+	print both to next occurance of apnt in the file
+they different
+	print till the next occance of APnT in the file
+if they both are done
+	print the remaining of the text of both
+remove from the text that was printed
+repeat from top
+
+'''
+
+file1_3 = file1_2
+file2_3 = file2_2
+
+#I = file1
+#O = file2
+
+
+
+while 1:
+	try:
+
+		#find the first instence of the array in the files
+		Ii = 0
+		pI = ""
+		while Ii < len(APnT) and len(pI) < 2:
+			pI = file1_3[file1_3.find(APnT[Ii]):]
+			Ii += 1
+		Ii -= 1
+
+		Oi = 0
+		pO = ""
+		while Oi < len(APnT) and len(pO) < 2:
+			pO = file2_3[file2_3.find(APnT[Oi]):]
+			Oi += 1
+		Oi -= 1
 		
-				#prints what was found, if nothing, print what remains 
-				if pb != '':
-					pb = '\n' + pb
-					f_input = f_input + pb
-				else:
-					pa = '\n' + pa
-					f_input = f_input + pa
-				portsec = pa.replace(pb, '', 1)
-				
-				if pb == '':
-					return					
-			except:
-				return
-	#run the format section
-	def format():
-		while reporttxt in editfile:
-			report()
-			column()
-			ports()
-	fin = ''
-	def combine():
-		global reporttxt, porttxt, f_input, APnT, editfile, origin, fin
-		outfile = ''		
-		edit_I = f_input
-		edit_O = origin
-		#gets the nmap report line from the input
-		remq = edit_I[edit_I.find(reporttxt):]
-		host_I = remq[ 0 : remq.index('\n')]
+		#if the file1 port is earlier than file2 port
+		if Ii < Oi or Oi == 65534:
 		
-		#checks if the input ip is in the originfile, if not, just add the input to the origin file
-		if host_I in origin:
-			beforeIP = edit_O[ 0 : edit_O.index(host_I)]
-			outfile = outfile + beforeIP + host_I
-		else:
-			outfile = origin + "\n\n" + f_input
-			quit()
-		
-		#remove the scan report txt
-		remq = edit_O[edit_O.find(reporttxt):]
-		edit_O = remq
-		host_O = remq[ 0 : remq.index('\n')]
-		edit_O = edit_O.replace(host_O, "", 1)
+			#remove \n if needed
+			start_new_line = pI.startswith("\n")
+			if start_new_line == True:
+				pI = pI.replace('\n', '', 1)
+
+			#remove everything after next \n
+			port_line_I = pI[ 0 : pI.index('\n')]
+
+			fin_file = fin_file + port_line_I + "\n"
+
+			#remove the line from the file
+			file1_3 = file1_3.replace(port_line_I, "", 1)
+
+			#remove \n if needed
+			start_new_line = file1_3.startswith("\n")
+			if start_new_line == True:
+				file1_3 = file1_3.replace('\n', '', 1)
+
+			#add this cause formatting 
+			file1_3 = "\n|" + file1_3
+
+			# find the next instence of the array APnT and remove it and eveythig after
+			port_content_I = ""
+			Iic = 0	
+			while Iic < len(APnT) and len(port_content_I) < 2:
+				try:
+					port_content_I = file1_3[ 0 : file1_3.index(APnT[Iic])]
+				except:
+					Iic += 1
+
+			# remove the new line if needed
+			start_new_line = port_content_I.startswith("\n|")
+			if port_content_I == True:
+				port_content_I = port_content_I.replace('\n', '', 1)
+
+			#printing content of the ports
+			if port_content_I != '':
+				fin_file = fin_file + port_content_I + "\n"
+			else:
+				fin_file = fin_file + file1_3 + "\n--------------------------------------\n"
+
+
+			file1_3 = file1_3.replace(port_content_O, "", 1)
+
+		if Ii > Oi or Ii == 65534:
+
+			#remove \n if needed
+			start_new_line = pO.startswith("\n")
+			if start_new_line == True:
+				pO = pO.replace('\n', '', 1)
+
+			#remove everything after next \n
+			port_line_O = pO[ 0 : pO.index('\n')]
+
+			fin_file = fin_file + port_line_O + "\n"
+
+			#remove the line from the file
+			file2_3 = file2_3.replace(port_line_O, "", 1)
+
+			#remove \n if needed
+			start_new_line = file2_3.startswith("\n")
+			if start_new_line == True:
+				file2_3 = file2_3.replace('\n', '', 1)
+
+			#add this cause formatting 
+			file2_3 = "\n|" + file2_3
+
+			# find the next instence of the array APnT and remove it and eveythig after
+			port_content_O = ""
+			Oic = 0	
+			while Oic < len(APnT) and len(port_content_O) < 2:
+				try:
+					port_content_O = file2_3[ 0 : file2_3.index(APnT[Oic])]
+				except:
+					Oic += 1
+
+			# remove the new line if needed
+			start_new_line = port_content_O.startswith("\n|")
+			if port_content_O == True:
+				port_content_O = port_content_O.replace('\n', '', 1)
+
+			#printing content of the ports
+			if port_content_O != '':
+				fin_file = fin_file + port_content_O + "\n"
+			else:
+				fin_file = fin_file + file2_3 + "\n--------------------------------------\n"
+
+
+			file2_3 = file2_3.replace(port_content_O, "", 1)
+
+		if Ii == Oi:
 			
-		
-		#grab the port tab from input, and remove
-		remq = edit_I[edit_I.find(porttxt):]
-		edit_I = remq
-		port_I = remq[ 0 : remq.index('\n')]
-		edit_I = edit_I.replace(port_I, "", 1)
-		
-		
-		#grab the port tab from origin, and remove
-		remq = edit_O[edit_O.find(porttxt):]
-		edit_O = remq
-		port_O = remq[ 0 : remq.index('\n')]
-		edit_O = edit_O.replace(port_O, "", 1)
-		
-		#find the bigger port tab and add it to output
-		if len(port_O) > len(port_I):
-			outfile = outfile + '\n' + port_O + '\n'
-		else:
-			outfile = outfile + '\n' + port_I + '\n'
+			#remove \n if needed
+			start_new_line = pI.startswith("\n")
+			if start_new_line == True:
+				pI = pI.replace('\n', '', 1)
+
+			#remove everything after next \n
+			port_line_I = pI[ 0 : pI.index('\n')]
+
+			fin_file = fin_file + port_line_I + "\n"
+			#remove the line from the file
+			file1_3 = file1_3.replace(port_line_I, "", 1)
+			#print(file1_3)
+
+			#remove \n if needed
+			start_new_line = file1_3.startswith("\n")
+			if start_new_line == True:
+				file1_3 = file1_3.replace('\n', '', 1)
+
+			#add this cause formatting 
+			file1_3 = "\n|" + file1_3
+
+			# find the next instence of the array APnT and remove it and eveythig after
+			port_content_I = ""
+			Iic = 0	
+			while Iic < len(APnT) and len(port_content_I) < 2:
+				try:
+					port_content_I = file1_3[ 0 : file1_3.index(APnT[Iic])]
+				except:
+					Iic += 1
+
+			# remove the new line if needed
+			start_new_line = port_content_I.startswith("\n|")
+			if port_content_I == True:
+				port_content_I = port_content_I.replace('\n', '', 1)
+
+			#printing content of the ports
+			if port_content_I != '':
+				fin_file = fin_file + port_content_I + "\n"
+			else:
+				fin_file = fin_file + file1_3 + "\n--------------------------------------\n"
 
 
-		#	   PORT PRINTING		
-		while 1:
-			try:
-				Ii = 0
-				pI = ""
-				while Ii < len(APnT) and len(pI) < 2:
-					pI = edit_I[edit_I.find(APnT[Ii]):]
-					Ii += 1
-				Ii -= 1
-				
-				start_new_line = pI.startswith("\n")
-				if start_new_line == True:
-					pI = pI.replace('\n', '', 1)
-		
-		
-				port_line_I = pI[ 0 : pI.index('\n')]
-					
-			
-				#get the same port line from the previous 
-				if APnT[Ii] in edit_O:
-					
-					#print all the ports that we skipped
-					portbefore = edit_O[ 0 : edit_O.index(APnT[Ii])]
-					outfile = outfile + portbefore
-					
-					
-					#remove the previus ports that are not needed	
-					remq = edit_O[edit_O.find(APnT[Ii]):]
-					edit_O = remq
-					
-					#removes the new line so it can find what were looking for
-					start_new_line = edit_O.startswith("\n")
-					if start_new_line == True:
-						edit_O = edit_O.replace('\n', '', 1)
-						
-					port_line_O = edit_O[ 0 : edit_O.index('\n')]
-				
-					if len(port_line_O) > len(port_line_I):
-						outfile = outfile + '\n' + port_line_O + '\n'
-					else:
-						outfile = outfile + '\n' + port_line_I + '\n'
-			
-					#remove the port lines
-					edit_O = edit_O.replace(port_line_O, "", 1)
-					edit_I = edit_I.replace(port_line_I, "", 1)
-					
-					
-					start_new_line = edit_O.startswith("\n")
-					if start_new_line == True:
-						edit_O = edit_O.replace('\n', '', 1)
-					
-					#input ports
-					
-					edit_I = "\n|" + edit_I
-					
-					port_content_I = ""
-					Iic = 0	
-					while Iic < len(APnT) and len(port_content_I) < 2:
-						try:
-							port_content_I = edit_I[ 0 : edit_I.index(APnT[Iic])]
-						except:
-							Iic += 1
-		
-					if port_content_I != '':
-						outfile = outfile + port_content_I
-					else:
-						outfile = outfile + edit_I
-					outfile = outfile + "\n-------------------------------------------------------\n"					
-					
-					
-					#remove to the next port
-					port_content_O = ""
-					Oi = 0	
-					while Oi < len(APnT) and len(port_content_O) < 2:
-						try:
-							port_content_O = edit_O[ 0 : edit_O.index(APnT[Oi])]
-						except:
-							Oi += 1		
-					print(port_content_O)
-						
-					if port_content_O != '':
-						outfile = outfile + port_content_O
-					else:
-						outfile = outfile + edit_O
-					outfile = outfile + "\n-------------------------------------------------------\n"
-					
-			
-					edit_O = edit_O.replace(port_content_O, "", 1)
-					edit_I = edit_I.replace(port_content_I, "", 1)
+			file1_3 = file1_3.replace(port_content_I, "", 1)
 
-				#if this is a new port, add it between the already known ports
-				else:
+			#remove \n if needed
+			start_new_line = pO.startswith("\n")
+			if start_new_line == True:
+				pO = pO.replace('\n', '', 1)
 
-					Ni = 0
-					previous = ""
-					while Ii > Ni:
-						if APnT[Ni] in edit_O:
-							previous = edit_O[ 0 : edit_O.index(APnT[Ni])]
-							edit_O = edit_O.replace(previous, "", 1)
-							outfile = outfile + previous
-							previous = ""
-							Ni += 1
-							
-						else:
-							Ni += 1
-						
-					while Ni < len(APnT) and len(previous) < 1:
-						try:
-							previous = edit_O[ 0 : edit_O.index(APnT[Ni])]
-							edit_O = edit_O.replace(previous, "", 1)
-							outfile = outfile + previous
-						except:
-							Ni += 1	
+			#remove everything after next \n
+			port_line_O = pO[ 0 : pO.index('\n')]
 
-					
-					start_new_line = edit_I.startswith("\n")
-					if start_new_line == True:
-						edit_I = edit_I.replace('\n', '', 1)		
-		
-					port_line_I = edit_I[ 0 : edit_I.index('\n')]
-					
-					outfile = outfile + '\n' + port_line_I + '\n'
-					
-					edit_I = edit_I.replace(port_line_I, "", 1)
-					
-					port_content_I = ""
-					Iic = 0	
-					while Iic < len(APnT) and len(port_content_I) < 2:
-						try:
-							port_content_I = edit_I[ 0 : edit_I.index(APnT[Iic])]
-						except:
-							Iic += 1
-		
-					if port_content_I != '':
-						outfile = outfile + port_content_I
-					else:
-						outfile = outfile + edit_I
-					outfile = outfile + "\n-------------------------------------------------------\n"
-					edit_I = edit_I.replace(port_content_I, "", 1)
-					
-					outfile = outfile + edit_O
-			except:
-				break
-				
-		#reformat repeats to clean up ending output
-		outfile = outfile.replace("\n\n", "\n")
-		outfile = outfile.replace("\n \n", "\n")
-		outfile = outfile.replace("|\n", "")
-		outfile = outfile.replace("-------------------------------------------------------\n-------------------------------------------------------", "-------------------------------------------------------\n")
-		fin = outfile
-	
+			fin_file = fin_file + port_line_O + "\n"
 
-	#main
-	if origin == '':
-		format()
-		out_file = open (argument, 'w')
-		out_file.write(f_input)
-		out_file.close
-			
+			#remove the line from the file
+			file2_3 = file2_3.replace(port_line_O, "", 1)
+
+			#remove \n if needed
+			start_new_line = file2_3.startswith("\n")
+			if start_new_line == True:
+				file2_3 = file2_3.replace('\n', '', 1)
+
+			#add this cause formatting 
+			file2_3 = "\n|" + file2_3
+
+			# find the next instence of the array APnT and remove it and eveythig after
+			port_content_O = ""
+			Oic = 0	
+			while Oic < len(APnT) and len(port_content_O) < 2:
+				try:
+					port_content_O = file2_3[ 0 : file2_3.index(APnT[Oic])]
+				except:
+					Oic += 1
+
+			# remove the new line if needed
+			start_new_line = port_content_O.startswith("\n|")
+			if port_content_O == True:
+				port_content_O = port_content_O.replace('\n', '', 1)
+
+			#printing content of the ports
+			if port_content_O != '':
+				fin_file = fin_file + port_content_O + "\n"
+			else:
+				fin_file = fin_file + file2_3 + "\n--------------------------------------\n"
+
+
+			file2_3 = file2_3.replace(port_content_O, "", 1)
+
+	except:
+			break
+
+
+fin_file = fin_file.replace("\n\n", "\n")
+fin_file = fin_file.replace("\n \n", "\n")
+fin_file = fin_file.replace("|\n", "")
+fin_file = fin_file.replace("||", "|")
+fin_file = fin_file.replace("--------------------------------------\n--------------------------------------", "--------------------------------------\n")
+
+print(fin_file)
+
+
+counter = 1
+while 1:
+	if counter == 1:
+		filename = "output.txt"
 	else:
-		format()
-		combine()
-
-		out_file = open (argument, 'w')
-		out_file.write(fin)
-		out_file.close
+		filename = "output" + str(counter) + ".txt"
+	try:
+		with open(filename, "x") as f:
+			f.write(fin_file)
+		break
+	except FileExistsError:
+		counter += 1
