@@ -1,4 +1,4 @@
-# CybersecrityPrograms/Spotter/Spotter.py
+# Spotter
 
 This program is built to clean up the output files of multiple nmap scans. 
 It will reformat the outputs of your nmap scans into one combined file.
