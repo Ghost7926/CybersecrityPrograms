@@ -1,5 +1,3 @@
 # CybersecrityPrograms
 
-Dodger    - Wi-Fi blacklist dodging
-
-Spotter   - nmap output reformatter and combiner
+Collection of script I have created for differing cybersecurity purposes. 
